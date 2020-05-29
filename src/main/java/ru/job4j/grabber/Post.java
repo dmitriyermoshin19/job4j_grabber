@@ -1,16 +1,19 @@
 package ru.job4j.grabber;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
-public class Post {
+public class Post implements Comparable<Post> {
     private String name;
     private String text;
     private String link;
+    private LocalDateTime date;
 
-    public Post(String name, String text, String link) {
+    public Post(String name, String text, LocalDateTime date, String link) {
         this.name = name;
         this.text = text;
         this.link = link;
+        this.date = date;
     }
 
     public String getName() {
@@ -23,6 +26,15 @@ public class Post {
 
     public String getLink() {
         return this.link;
+    }
+
+    public LocalDateTime getDate() {
+        return this.date;
+    }
+
+    @Override
+    public int compareTo(Post another) {
+        return Integer.compare(this.date.getDayOfYear(), another.date.getDayOfYear());
     }
 
     @Override
@@ -40,5 +52,15 @@ public class Post {
     @Override
     public int hashCode() {
         return Objects.hash(this.name);
+    }
+
+    @Override
+    public String toString() {
+        return System.lineSeparator()
+                + "Job " + System.lineSeparator()
+                + "name='" + name + '\'' + System.lineSeparator()
+                + "text: " + text + System.lineSeparator()
+                + "date: " + date + System.lineSeparator()
+                + "link: " + link;
     }
 }

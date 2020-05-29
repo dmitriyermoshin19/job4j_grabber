@@ -39,7 +39,7 @@ public class Grabber implements Grab {
                     .withSchedule(cronSchedule(times))
                     .build();
             scheduler.scheduleJob(job, trigger);
-            Thread.sleep(50000);
+            Thread.sleep(60000);
             scheduler.shutdown();
             System.out.println(store);
         } catch (SchedulerException | InterruptedException e) {
@@ -63,6 +63,7 @@ public class Grabber implements Grab {
                             for (Post post : store.getAll()) {
                                 out.write(post.toString().getBytes());
                                 out.write(System.lineSeparator().getBytes());
+                                System.out.println(post);
                             }
                         } else if (words.contains("Exit")) {
                             flag = false;

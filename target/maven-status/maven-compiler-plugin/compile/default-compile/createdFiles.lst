@@ -4,10 +4,7 @@ ru\job4j\App.class
 ru\job4j\grabber\HtmlParse.class
 ru\job4j\grabber\Grab.class
 ru\job4j\grabber\HtmlParse$1.class
-ru\job4j\grabber\InitGrab.class
-ru\job4j\grabber\TimeParse.class
 ru\job4j\grabber\Parse.class
 ru\job4j\grabber\SqlStore.class
-ru\job4j\grabber\ExecuteJob.class
 ru\job4j\grabber\Store.class
 ru\job4j\grabber\Config.class

@@ -11,11 +11,15 @@ import static org.junit.Assert.*;
 
 public class SqlStoreTest {
 
+    /**
+     * тест расчитан на то, что только 0 ячейка проверяется
+     */
     @Test
     public void whenSaveAndGetAll() {
-        Connection connection = ConnectionManager.withRollback(new Config());
+        Connection connection = ConnectionManager.withoutRollback(new Config());
+        LocalDateTime date = LocalDateTime.of(2020, 5, 15, 0, 0, 0);
         try (SqlStore store = new SqlStore(connection)) {
-            List<Post> postsIn = List.of(new Post("Java", "text", "link"));
+            List<Post> postsIn = List.of(new Post("Java", "text", date, "link"));
             store.save(postsIn);
             Post postOut = store.getAll().get(0);
             assertThat(postOut.getName(), is("Java"));
@@ -26,11 +30,11 @@ public class SqlStoreTest {
 
     @Test
     public void whenSaveDateAndGetLastDate() {
-        Connection connection = ConnectionManager.withoutRollback(new Config());
+        Connection connection = ConnectionManager.withRollback(new Config());
         try (SqlStore store = new SqlStore(connection)) {
             LocalDateTime date1 = LocalDateTime.of(2020, 5, 15, 0, 0, 0);
             store.saveDate(date1);
-            LocalDateTime date2 = LocalDateTime.of(2020, 5, 16, 0, 0, 0);
+            LocalDateTime date2 = LocalDateTime.of(2020, 1, 16, 0, 0, 0);
             store.saveDate(date2);
             assertThat(store.getLastDate(), is(date2));
         }

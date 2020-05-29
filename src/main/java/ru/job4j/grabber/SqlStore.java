@@ -19,11 +19,12 @@ public class SqlStore implements Store, AutoCloseable {
     @Override
     public void save(List<Post> posts) {
         try (PreparedStatement ps = connection
-                .prepareStatement("insert into post(name, text, link) values(?,?,?)")) {
+                .prepareStatement("insert into post(name, text, date, link) values(?,?,?,?)")) {
             for (Post post : posts) {
                 ps.setString(1, post.getName());
                 ps.setString(2, post.getText());
-                ps.setString(3, post.getLink());
+                ps.setTimestamp(3, Timestamp.valueOf(post.getDate()));
+                ps.setString(4, post.getLink());
                 ps.addBatch();
             }
             ps.executeBatch();
@@ -42,6 +43,7 @@ public class SqlStore implements Store, AutoCloseable {
                 Post post = new Post(
                         rs.getString("name"),
                         rs.getString("text"),
+                        rs.getTimestamp("date").toLocalDateTime(),
                         rs.getString("link"));
                 list.add(post);
             }

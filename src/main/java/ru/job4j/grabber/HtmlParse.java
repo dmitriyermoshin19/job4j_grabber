@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 public class HtmlParse implements Parse {
     private static final Logger LOG = LogManager.getLogger(HtmlParse.class.getName());
     private LocalDateTime lastDate = null;
+    private LocalDateTime dateTime = null;
     private DateTimeFormatter fmt = new DateTimeFormatterBuilder()
             .appendPattern("d ")
             .appendText(ChronoField.MONTH_OF_YEAR, new HashMap<>() { {
@@ -52,8 +53,8 @@ public class HtmlParse implements Parse {
         return dateOut;
     }
 
-    private boolean filter(String name) {
-        return Pattern.compile("(java)(?!\\s?script)", Pattern.CASE_INSENSITIVE).matcher(name).find();
+    private boolean filter(String namePage) {
+        return Pattern.compile("(java)(?!\\s?script)", Pattern.CASE_INSENSITIVE).matcher(namePage).find();
     }
 
     private String nextPageLink(Document doc) {
@@ -68,7 +69,9 @@ public class HtmlParse implements Parse {
             Document doc = Jsoup.connect(postLink).get();
             String name = doc.title().split(" / Вакансии")[0];
             String text = doc.select("td.msgBody").get(1).text();
-            post = new Post(name, text, postLink);
+            String date = doc.select("td.msgFooter").get(0).text();
+            this.dateTime = this.parseDate(date.substring(0, date.indexOf(" [")));
+            post = new Post(name, text, dateTime, postLink);
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);
         }
@@ -78,30 +81,34 @@ public class HtmlParse implements Parse {
     @Override
     public List<Post> parser(String linkPage) {
         LOG.info("Start parsing...");
-        Set<Post> posts = new LinkedHashSet<>();
+        List<Post> posts = new ArrayList<>();
         try {
             exitlabel: do {
                 Document doc = Jsoup.connect(linkPage).get();
                 Elements table = doc.select("table.forumtable tr:has(td)");
                 for (Element tr : table) {
                     Elements td = tr.select("td");
-                    String name = td.get(1).text();
-                    String dateStart = td.get(5).text();
-                    if (this.filter(name)) {
-                        LocalDateTime date = this.parseDate(dateStart);
+                    String namePage = td.get(1).text();
+                    String datePage = td.get(5).text();
+                    if (this.filter(namePage)) {
+                        LocalDateTime date = this.parseDate(datePage);
                         if (lastDate != null && lastDate.isAfter(date)) {
                             break exitlabel;
                         }
-                        String href = td.get(1).select("a").attr("href");
-                        posts.add(this.detail(href));
+                        String hrefPost = td.get(1).select("a").attr("href");
+                        Post post = this.detail(hrefPost);
+                        if (dateTime.isAfter(lastDate)) {
+                            posts.add(post);
+                        }
                     }
                 }
                 linkPage = this.nextPageLink(doc);
             } while (!linkPage.isEmpty());
+            Collections.sort(posts);
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);
         }
         LOG.info(String.format("%s posts found.", posts.size()));
-        return new ArrayList<>(posts);
+        return posts;
     }
 }

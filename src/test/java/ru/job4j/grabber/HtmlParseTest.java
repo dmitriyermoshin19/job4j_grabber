@@ -19,6 +19,7 @@ public class HtmlParseTest {
         assertThat(post.getText().startsWith("Компания BizApps")
                 && post.getText().endsWith("Ваших откликов!"), is(true));
         assertThat(post.getLink(), is(postLink));
+        assertThat(post.getDate(), is("6 ноя 19, 15:25"));
     }
 
     /**
@@ -29,8 +30,8 @@ public class HtmlParseTest {
     @Test
     public void whenParser() {
         String link = "https://www.sql.ru/forum/job-offers/";
-        parse.setLastDate(LocalDateTime.of(2020, 5, 1, 0, 0));
+        parse.setLastDate(LocalDateTime.of(2020, 1, 1, 0, 0));
         List<Post> list = parse.parser(link);
-        assertThat(list.size(), is(4));
+        assertThat(list.size(), is(27));
     }
 }
