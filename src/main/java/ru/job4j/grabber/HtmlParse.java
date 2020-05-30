@@ -35,20 +35,20 @@ public class HtmlParse implements Parse {
         this.lastDate = lastDate;
     }
 
-    private LocalDateTime parseDate(String dateStart) {
+    private LocalDateTime parseDate(String date) {
         LocalDateTime dateOut;
-        if (dateStart.contains("сегодня")) {
+        if (date.contains("сегодня")) {
             dateOut = LocalDateTime.of(
                     LocalDate.now(),
-                    LocalTime.parse(dateStart.split(" ")[1])
+                    LocalTime.parse(date.split(" ")[1])
             );
-        } else if (dateStart.contains("вчера")) {
+        } else if (date.contains("вчера")) {
             dateOut = LocalDateTime.of(
                     LocalDate.now().minusDays(1L),
-                    LocalTime.parse(dateStart.split(" ")[1])
+                    LocalTime.parse(date.split(" ")[1])
             );
         } else {
-            dateOut = LocalDateTime.parse(dateStart, fmt);
+            dateOut = LocalDateTime.parse(date, fmt);
         }
         return dateOut;
     }
