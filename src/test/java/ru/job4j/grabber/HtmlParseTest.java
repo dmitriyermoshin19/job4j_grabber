@@ -30,8 +30,8 @@ public class HtmlParseTest {
     @Test
     public void whenParser() {
         String link = "https://www.sql.ru/forum/job-offers/";
-        htmlParse.setLastDate(LocalDateTime.of(2020, 1, 1, 0, 0));
+        htmlParse.setLastDate(LocalDateTime.of(2021, 1, 1, 0, 0));
         List<Post> list = htmlParse.parser(link);
-        assertThat(list.size(), is(27));
+        assertThat(list.size(), is(21));
     }
 }

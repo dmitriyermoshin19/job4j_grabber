@@ -6,8 +6,10 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.quartz.SchedulerException;
 
 import java.io.IOException;
+import java.sql.Connection;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -15,7 +17,12 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Locale;
+import java.util.Map;
+
+import static java.util.Map.entry;
 
 public class HtmlParse implements Parse {
     private static final Logger LOG = LogManager.getLogger(HtmlParse.class.getName());
@@ -70,7 +77,11 @@ public class HtmlParse implements Parse {
             String name = doc.title().split(" / Вакансии")[0];
             String text = doc.select("td.msgBody").get(1).text();
             String date = doc.select("td.msgFooter").get(0).text();
-            this.dateTime = this.parseDate(date.substring(0, date.indexOf(" [")));
+            Matcher matcher = Pattern.compile("\\d{1,2}\\s+\\p{L}{3}\\s+\\d{1,2},\\s+\\d{1,2}:\\d{1,2}").matcher(date);
+            if (matcher.find()) {
+                date = matcher.group();
+            }
+            this.dateTime = this.parseDate(date);
             post = new Post(name, text, dateTime, postLink);
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);
@@ -111,4 +122,16 @@ public class HtmlParse implements Parse {
         LOG.info(String.format("%s posts found.", posts.size()));
         return posts;
     }
+
+    public static void main(String[] args) throws SchedulerException {
+        String link = "https://www.sql.ru/forum/job-offers/";
+        HtmlParse htmlParse = new HtmlParse();
+        htmlParse.setLastDate(LocalDateTime.of(2021, 1, 1, 0, 0));
+        List<Post> list = htmlParse.parser(link);
+        for (Post p : list) {
+            System.out.println(p);
+        }
+    }
+
+
 }
