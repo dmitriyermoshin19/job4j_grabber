@@ -9,7 +9,6 @@ import org.jsoup.select.Elements;
 import org.quartz.SchedulerException;
 
 import java.io.IOException;
-import java.sql.Connection;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -20,14 +19,11 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Locale;
-import java.util.Map;
-
-import static java.util.Map.entry;
 
 public class HtmlParse implements Parse {
     private static final Logger LOG = LogManager.getLogger(HtmlParse.class.getName());
     private LocalDateTime lastDate = null;
-    private LocalDateTime dateTime = null;
+    private LocalDateTime postDateTime = null;
     private DateTimeFormatter fmt = new DateTimeFormatterBuilder()
             .appendPattern("d ")
             .appendText(ChronoField.MONTH_OF_YEAR, new HashMap<>() { {
@@ -60,13 +56,15 @@ public class HtmlParse implements Parse {
         return dateOut;
     }
 
-    private boolean filter(String namePage) {
-        return Pattern.compile("(java)(?!\\s?script)", Pattern.CASE_INSENSITIVE).matcher(namePage).find();
+    private boolean filter(String nameTopic) {
+        return Pattern.compile("(java)(?!\\s?script)", Pattern.CASE_INSENSITIVE)
+                .matcher(nameTopic).find();
     }
 
     private String nextPageLink(Document doc) {
         int current = Integer.parseInt(doc.select("table.sort_options td b").text());
-        return doc.select(String.format("table.sort_options td a:contains(%s)", current + 1)).attr("href");
+        return doc.select(String.format("table.sort_options td a:contains(%s)", current + 1))
+                .attr("href");
     }
 
     @Override
@@ -76,13 +74,15 @@ public class HtmlParse implements Parse {
             Document doc = Jsoup.connect(postLink).get();
             String name = doc.title().split(" / Вакансии")[0];
             String text = doc.select("td.msgBody").get(1).text();
+            String date = doc.select("td.msgFooter").get(0).text().split("\\s+\\[\\d+\\]")[0]; /*
             String date = doc.select("td.msgFooter").get(0).text();
-            Matcher matcher = Pattern.compile("\\d{1,2}\\s+\\p{L}{3}\\s+\\d{1,2},\\s+\\d{1,2}:\\d{1,2}").matcher(date);
+            Matcher matcher = Pattern.compile("\\d{1,2}\\s+\\p{L}{3}\\s+\\d{1,2},\\s+\\d{1,2}:\\d{1,2}")
+                    .matcher(date);
             if (matcher.find()) {
                 date = matcher.group();
-            }
-            this.dateTime = this.parseDate(date);
-            post = new Post(name, text, dateTime, postLink);
+            }*/
+            this.postDateTime = this.parseDate(date);
+            post = new Post(name, text, postDateTime, postLink);
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);
         }
@@ -99,16 +99,16 @@ public class HtmlParse implements Parse {
                 Elements table = doc.select("table.forumtable tr:has(td)");
                 for (Element tr : table) {
                     Elements td = tr.select("td");
-                    String namePage = td.get(1).text();
-                    String datePage = td.get(5).text();
-                    if (this.filter(namePage)) {
-                        LocalDateTime date = this.parseDate(datePage);
+                    String nameTopic = td.get(1).text();
+                    String dateTopic = td.get(5).text();
+                    if (this.filter(nameTopic)) {
+                        LocalDateTime date = this.parseDate(dateTopic);
                         if (lastDate != null && lastDate.isAfter(date)) {
                             break exitlabel;
                         }
                         String hrefPost = td.get(1).select("a").attr("href");
                         Post post = this.detail(hrefPost);
-                        if (dateTime.isAfter(lastDate)) {
+                        if (postDateTime.isAfter(lastDate)) {
                             posts.add(post);
                         }
                     }
